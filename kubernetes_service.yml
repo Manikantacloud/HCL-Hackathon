@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-java-app-service
+  name: java-microservice
 spec:
+  type: ClusterIP
   selector:
-    app: my-java-app
+    app: java-microservice
   ports:
     - protocol: TCP
-      port: 80 # Port for external access
-      targetPort: 8080 # Port of the application inside the container
-  type: LoadBalancer # Or ClusterIP for internal access
+      port: 80
+      targetPort: 8080
