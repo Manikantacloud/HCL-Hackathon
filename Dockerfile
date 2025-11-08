@@ -1,13 +1,14 @@
-# Stage 1: Build the Java application
-FROM maven:3.9.5-amazoncorretto-17 AS build
-WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-RUN mvn clean install -DskipTests
+# Use official OpenJDK image as a parent image
+FROM eclipse-temurin:17-jre-alpine
 
-# Stage 2: Create the final runtime image
-FROM amazoncorretto:17-alpine-jdk
+# Set working directory
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copy the built jar into the image
+COPY target/*.jar app.jar
+
+# Expose the application's port
+EXPOSE 8080
+
+# Run the jar file
 ENTRYPOINT ["java", "-jar", "app.jar"]
-EXPOSE 8080 # Or whatever port your application listens on
