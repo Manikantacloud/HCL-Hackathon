@@ -1,0 +1,57 @@
+name: Build and Deploy Java App to GKE
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  IMAGE_NAME: java-microservice
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Auth with Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Configure Docker for GCR
+      run: gcloud auth configure-docker
+
+    - name: Build and Push Docker image to GCR
+      run: |
+        export IMAGE_URI=gcr.io/$GCP_PROJECT_ID/$IMAGE_NAME:${{ github.sha }}
+        docker build -t $IMAGE_URI .
+        docker push $IMAGE_URI
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+    - name: Get credentials for GKE
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GCP_PROJECT_ID
+
+    - name: Set image in k8s manifest
+      run: |
+        sed -i "s|gcr.io/YOUR_PROJECT_ID/java-microservice:latest|${IMAGE_URI}|g" deployment.yaml
+
+    - name: Deploy to GKE
+      run: |
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
