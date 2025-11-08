@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-java-app-deployment
+spec:
+  replicas: 3 # Number of desired instances
+  selector:
+    matchLabels:
+      app: my-java-app
+  template:
+    metadata:
+      labels:
+        app: my-java-app
+    spec:
+      containers:
+      - name: my-java-app-container
+        image: your-docker-registry/your-java-app:latest # Replace with your image
+        ports:
+        - containerPort: 8080 # Port exposed by your application
+        env: # Example environment variables
+        - name: DATABASE_URL
+          value: "jdbc:mysql://mysql-service:3306/mydb"
