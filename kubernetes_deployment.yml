@@ -1,22 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-java-app-deployment
+  name: java-microservice
 spec:
-  replicas: 3 # Number of desired instances
+  replicas: 2
   selector:
     matchLabels:
-      app: my-java-app
+      app: java-microservice
   template:
     metadata:
       labels:
-        app: my-java-app
+        app: java-microservice
     spec:
       containers:
-      - name: my-java-app-container
-        image: your-docker-registry/your-java-app:latest # Replace with your image
+      - name: java-microservice
+        image: gcr.io/YOUR_PROJECT_ID/java-microservice:latest
         ports:
-        - containerPort: 8080 # Port exposed by your application
-        env: # Example environment variables
-        - name: DATABASE_URL
-          value: "jdbc:mysql://mysql-service:3306/mydb"
+        - containerPort: 8080
